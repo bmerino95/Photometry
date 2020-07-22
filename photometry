@@ -1,0 +1,338 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Created on Thu Jun  4 15:29:17 2020
+
+@author: brianmerino
+
+This code is meant to automate my previous photometry code. It should plot the photometry for each filter and then
+read in the master catalog that I created for my clumpy galaxies and compare the two results. This version of the 
+code does NOT include background subtraction. Instead, I created a separate code to subtract the background since 
+that process was very time intensive. 
+
+
+NEEDS:
+Master catalog (for CLASH information)
+Interesting Sources region file
+
+Eventually:
+Molino and Conner information will be added to final plots
+
+NOTES
+a611 does not have f625w
+macs0744 does not have f625w and has 775w with ACS and wfc3uvis
+macs1423 does not have f625w
+"""
+
+import numpy as np
+import matplotlib.pyplot as plt
+import sys
+#import astropy
+from astropy.io import fits
+from astropy.wcs import WCS
+from astropy.visualization import simple_norm
+from astropy.table import Table
+#from photutils import CircularAperture
+#from photutils import CircularAnnulus
+from photutils import aperture_photometry
+from astropy.coordinates import SkyCoord  # High-level coordinates
+import astropy.units as u
+from photutils import SkyCircularAperture
+import time
+
+t0 = time.time()
+
+# constants
+c = 2.9979E10       # cm/s
+Ang = 1E-8          # cm
+Jy = 1.0E-23        # erg/s/cm^2/Hz
+mJy = 1e-3          # Jy
+uJy = 1e-6          # Jy
+Mpc = 3.086e24      # cm
+
+## PHOTFLAM: inverse sensitivity (erg * cm**(-2) * s**(-1) Angstrom**(-1)
+## PHOTPLAM: Pivot wavelength
+
+
+def hst_phot(photflam,photplam,dn,dn_err=None,unit="Jy"):
+
+    ## http://www.stsci.edu/hst/acs/analysis/zeropoints
+
+    ABMAG_ZP=-2.5*np.log10(photflam)-5*np.log10(photplam)-2.408 
+    print ("ABMAG_ZP =", ABMAG_ZP)
+    m = -2.5*np.log10(dn) + ABMAG_ZP
+    print(m)
+    #mag.append(m)
+    #return ABMAG_ZP,m
+    return m
+
+
+#Read in CLASH photometry for clumpy galaxies
+iden,ra,dec,area = np.loadtxt('/Users/brianmerino/Desktop/CLUSTERS/master_catalog.txt',delimiter='\t',usecols=[3,0,1,4],skiprows=1,unpack=True)
+cluster = np.loadtxt('/Users/brianmerino/Desktop/CLUSTERS/master_catalog.txt',dtype='str',delimiter='\t',usecols=[2],skiprows=1)
+
+#Use circular area to calulcate radius
+rad = []
+for l in range(0,len(area)):
+    rad.append(round(np.sqrt(area[l]/np.pi),4))
+
+coords,radius,sky_apers = [],[],[]
+iden_int = []
+
+for i in range(0,len(iden)):
+    iden_int.append(int(iden[i]))
+
+#Create circular aperatures in skycoordinates
+for i in range (0,len(ra)):
+    coords.append(SkyCoord(ra[i], dec[i], unit="deg"))
+    radius.append(rad[i] *u.pix)        # pixels
+    sky_apers.append(SkyCircularAperture(coords[i], r=radius[i]))
+
+#Makes sure that the correct number of apertures were created
+print (len(sky_apers))
+
+
+filter_list = ['f225w','f275w','f336w','f390w','f435w','f475w','f606w','f625w','f775w','f814w','f850lp','f105w','f110w','f125w','f140w','f160w']
+alternate_filter_list = ['f225w','f275w','f336w','f390w','f435w','f475w','f606w','f775w','f814w','f850lp','f105w','f110w','f125w','f140w','f160w']
+macs1423_filter_list = ['f225w','f275w','f336w','f390w','f435w','f475w','f606w','f775w','f850lp','f105w','f110w','f125w','f140w','f160w']
+Clusters = ['a209','a383','a611','macs0329','macs0416','macs0429','macs0717','macs0744','macs1115','macs1149','macs1206','macs1311','macs1423','macs1720','macs1931','macs2129','ms2137','rxj1347','rxj1532','rxj2129']
+
+#Read in CLASH data so that I can compare it against mine
+Master_catalog = Table.read('/Users/brianmerino/Desktop/CLUSTERS/master_catalog.txt',format = 'ascii')
+
+f225_mag, f225_magerr= Master_catalog['col7'],Master_catalog['col8']
+f275_mag, f275_magerr= Master_catalog['col9'],Master_catalog['col10']
+f336_mag, f336_magerr= Master_catalog['col11'],Master_catalog['col12']
+f390_mag, f390_magerr= Master_catalog['col13'],Master_catalog['col14']
+f435_mag, f435_magerr= Master_catalog['col15'],Master_catalog['col16']
+f475_mag, f475_magerr= Master_catalog['col17'],Master_catalog['col18']
+f606_mag, f606_magerr= Master_catalog['col19'],Master_catalog['col20']
+f625_mag, f625_magerr= Master_catalog['col21'],Master_catalog['col22']
+f775_mag, f775_magerr= Master_catalog['col23'],Master_catalog['col24']
+f814_mag, f814_magerr= Master_catalog['col25'],Master_catalog['col26']
+f850_mag, f850_magerr= Master_catalog['col27'],Master_catalog['col28']
+f105_mag, f105_magerr= Master_catalog['col29'],Master_catalog['col30']
+f110_mag, f110_magerr= Master_catalog['col31'],Master_catalog['col32']
+f125_mag, f125_magerr= Master_catalog['col33'],Master_catalog['col34']
+f140_mag, f140_magerr= Master_catalog['col35'],Master_catalog['col36']
+f160_mag, f160_magerr= Master_catalog['col37'],Master_catalog['col38']
+
+#path to background subtracted iamges
+path = '/Volumes/Home_Drive/Research/Subtracted_Backgrounds/'
+
+#Create dictionaries
+mag          = []
+images       = {}
+hdulist      = {}
+hdr          = {}
+wcs          = {}
+norm         = {}
+phot         = {}
+ap_sum       = {}
+photflam     = {}
+photplam     = {}
+photbw       = {}
+magnitudes   = {}
+clash_mag    = {}
+clash_magerr = {}
+merino_err   = {}
+pivot        = {}
+merino       = {}
+wavelength   = {}
+
+
+'''
+NOTE: For some reason, one of the filters (f814w) in macs1423 is giving me an 
+issue that none of the other images are giving me. I might need to exclude it from this code
+if I cant figure out what is going on. 
+'''
+
+for c in range(0,len(cluster)):
+    test_string = cluster[c][1:-1]
+    if test_string == 'a611' or test_string == 'macs0744':
+        clash_mag['clash_mag_{0}_{1}'.format(test_string,int(iden[c]))]=[f225_mag[c],f275_mag[c],f336_mag[c],f390_mag[c],\
+                                     f435_mag[c],f475_mag[c],f606_mag[c],f775_mag[c],f814_mag[c],f850_mag[c],f105_mag[c],\
+                                     f110_mag[c],f125_mag[c],f140_mag[c],f160_mag[c]]
+        clash_magerr['clash_magerr_{0}_{1}'.format(test_string,int(iden[c]))]=[f225_magerr[c],f275_magerr[c],f336_magerr[c],f390_magerr[c],\
+                                     f435_magerr[c],f475_magerr[c],f606_magerr[c],f775_magerr[c],f814_magerr[c],f850_magerr[c],f105_magerr[c],\
+                                     f110_magerr[c],f125_magerr[c],f140_magerr[c],f160_magerr[c]]
+        for f in range(0,len(alternate_filter_list)):
+            images['%s_%s'%(test_string,alternate_filter_list[f])] = str(path)+str(test_string)+'_%s.fits'%(alternate_filter_list[f])
+            pf = fits.open(images['%s_%s'%(test_string,alternate_filter_list[f])])
+            hdr['%s_%s_hdr'%(test_string,alternate_filter_list[f])] = pf[0].header
+            wcs['%s_%s_wcs'%(test_string,alternate_filter_list[f])] = WCS(hdr['%s_%s_hdr'%(test_string,alternate_filter_list[f])])
+            data = pf[0].data
+            phot['%s_%s_%s'%(test_string,int(iden[c]),alternate_filter_list[f])] = aperture_photometry(pf,sky_apers[c],wcs=wcs['%s_%s_wcs'%(test_string,alternate_filter_list[f])])
+            ap_sum['%s_%s_%s'%(test_string,int(iden[c]),alternate_filter_list[f])] = phot['%s_%s_%s'%(test_string,int(iden[c]),alternate_filter_list[f])]['aperture_sum'][0]
+            photflam['%s'%(alternate_filter_list[f])] = pf[0].header['photflam']
+            photplam['%s'%(alternate_filter_list[f])] = pf[0].header['photplam']
+            photbw['%s'%(alternate_filter_list[f])] = pf[0].header['photbw']
+            pivot['%s_%s_%s'%(test_string,int(iden[c]),alternate_filter_list[f])] = photplam['%s'%(alternate_filter_list[f])]
+            magnitudes['%s_%s_%s'%(test_string,int(iden[c]),alternate_filter_list[f])] = hst_phot(photflam['%s'%(alternate_filter_list[f])], photplam['%s'%(alternate_filter_list[f])],ap_sum['%s_%s_%s'%(test_string,int(iden[c]),alternate_filter_list[f])])
+            merino_err['%s_%s_%s'%(test_string,int(iden[c]),alternate_filter_list[f])] = 0.01*magnitudes['%s_%s_%s'%(test_string,int(iden[c]),alternate_filter_list[f])]
+            print()
+            print(cluster[c],'',alternate_filter_list[f])
+            print()
+        '''merino['%s_%s_%s'%(test_string,int(iden[c]),alternate_filter_list[f])]=[magnitudes['a209_774_f225w'],magnitudes['a209_774_f275w'],magnitudes['a209_774_f336w'],magnitudes['a209_774_f390w'],\
+                                         magnitudes['a209_774_f435w'],magnitudes['a209_774_f475w'],magnitudes['a209_774_f606w'],\
+                                         magnitudes['a209_774_f775w'],magnitudes['a209_774_f814w'],magnitudes['a209_774_f850lp'],magnitudes['a209_774_f105w'],\
+                                         magnitudes['a209_774_f110w'],magnitudes['a209_774_f125w'],magnitudes['a209_774_f140w'],magnitudes['a209_774_f160w']]'''
+        merino['%s_%s_%s'%(test_string,int(iden[c]),alternate_filter_list[f])]=[magnitudes['%s_%s_%s'%(test_string,int(iden[c]),alternate_filter_list[0])],magnitudes['%s_%s_%s'%(test_string,int(iden[c]),alternate_filter_list[1])],\
+               magnitudes['%s_%s_%s'%(test_string,int(iden[c]),alternate_filter_list[2])],magnitudes['%s_%s_%s'%(test_string,int(iden[c]),alternate_filter_list[3])],\
+               magnitudes['%s_%s_%s'%(test_string,int(iden[c]),alternate_filter_list[4])],magnitudes['%s_%s_%s'%(test_string,int(iden[c]),alternate_filter_list[5])],\
+               magnitudes['%s_%s_%s'%(test_string,int(iden[c]),alternate_filter_list[6])],magnitudes['%s_%s_%s'%(test_string,int(iden[c]),alternate_filter_list[7])],\
+               magnitudes['%s_%s_%s'%(test_string,int(iden[c]),alternate_filter_list[8])],magnitudes['%s_%s_%s'%(test_string,int(iden[c]),alternate_filter_list[9])],\
+               magnitudes['%s_%s_%s'%(test_string,int(iden[c]),alternate_filter_list[10])],magnitudes['%s_%s_%s'%(test_string,int(iden[c]),alternate_filter_list[11])],\
+               magnitudes['%s_%s_%s'%(test_string,int(iden[c]),alternate_filter_list[12])],magnitudes['%s_%s_%s'%(test_string,int(iden[c]),alternate_filter_list[13])],\
+               magnitudes['%s_%s_%s'%(test_string,int(iden[c]),alternate_filter_list[14])]]
+    
+        wavelength['%s_%s_%s'%(test_string,int(iden[c]),alternate_filter_list[f])]=[photplam['f225w'],photplam['f275w'],photplam['f336w'],photplam['f390w'],\
+                                         photplam['f435w'],photplam['f475w'],photplam['f606w'],\
+                                         photplam['f775w'],photplam['f814w'],photplam['f850lp'],photplam['f105w'],\
+                                         photplam['f110w'],photplam['f125w'],photplam['f140w'],photplam['f160w']]
+        filt = []
+        for m in range(0,len(alternate_filter_list)):
+            filt.append(abs(clash_mag['clash_mag_{0}_{1}'.format(test_string,int(iden[c]))][m]) < 99)
+        D = np.compress(filt,clash_mag['clash_mag_{0}_{1}'.format(test_string,int(iden[c]))],0)
+        y_0 = np.min(D)
+        y_1 = np.max(D)
+        
+        plt.errorbar(wavelength['%s_%s_%s'%(test_string,int(iden[c]),alternate_filter_list[f])], clash_mag['clash_mag_{0}_{1}'.format(test_string,int(iden[c]))], yerr=clash_magerr['clash_magerr_{0}_{1}'.format(test_string,int(iden[c]))], linestyle='',marker='o',label='Clash')
+        plt.errorbar(wavelength['%s_%s_%s'%(test_string,int(iden[c]),alternate_filter_list[f])], merino['%s_%s_%s'%(test_string,int(iden[c]),alternate_filter_list[f])], yerr=merino_err['%s_%s_%s'%(test_string,int(iden[c]),alternate_filter_list[f])], linestyle='',marker='o',label='Merino')
+        plt.legend()
+        plt.ylim(y_0-1,y_1+1)
+        plt.gca().invert_yaxis()
+        plt.xlabel('Wavelengths in Angstroms')
+        plt.ylabel('Magnitude')
+        plt.title('Clash id: ' + str({0}).format(iden_int[c]))
+        plt.savefig('/Volumes/Home_Drive/Research/Plots/%s_%s'%(test_string,int(iden[c])))
+        plt.show()
+        
+    elif test_string == 'macs1423':
+        clash_mag['clash_mag_{0}_{1}'.format(test_string,int(iden[c]))]=[f225_mag[c],f275_mag[c],f336_mag[c],f390_mag[c],\
+                                     f435_mag[c],f475_mag[c],f606_mag[c],\
+                                     f775_mag[c],f850_mag[c],f105_mag[c],\
+                                     f110_mag[c],f125_mag[c],f140_mag[c],f160_mag[c]]
+        clash_magerr['clash_magerr_{0}_{1}'.format(test_string,int(iden[c]))]=[f225_magerr[c],f275_magerr[c],f336_magerr[c],f390_magerr[c],\
+                                         f435_magerr[c],f475_magerr[c],f606_magerr[c],\
+                                         f775_magerr[c],f850_magerr[c],f105_magerr[c],\
+                                         f110_magerr[c],f125_magerr[c],f140_magerr[c],f160_magerr[c]]
+        for f in range(0,len(macs1423_filter_list)):
+            images['%s_%s'%(test_string,macs1423_filter_list[f])] = str(path)+str(test_string)+'_%s.fits'%(macs1423_filter_list[f])
+            pf = fits.open(images['%s_%s'%(test_string,macs1423_filter_list[f])])
+            hdr['%s_%s_hdr'%(test_string,macs1423_filter_list[f])] = pf[0].header
+            wcs['%s_%s_wcs'%(test_string,macs1423_filter_list[f])] = WCS(hdr['%s_%s_hdr'%(test_string,macs1423_filter_list[f])])
+            data = pf[0].data
+            phot['%s_%s_%s'%(test_string,int(iden[c]),macs1423_filter_list[f])] = aperture_photometry(pf,sky_apers[c],wcs=wcs['%s_%s_wcs'%(test_string,macs1423_filter_list[f])])
+            ap_sum['%s_%s_%s'%(test_string,int(iden[c]),macs1423_filter_list[f])] = phot['%s_%s_%s'%(test_string,int(iden[c]),macs1423_filter_list[f])]['aperture_sum'][0]
+            photflam['%s'%(macs1423_filter_list[f])] = pf[0].header['photflam']
+            photplam['%s'%(macs1423_filter_list[f])] = pf[0].header['photplam']
+            photbw['%s'%(macs1423_filter_list[f])] = pf[0].header['photbw']
+            pivot['%s_%s_%s'%(test_string,int(iden[c]),macs1423_filter_list[f])] = photplam['%s'%(macs1423_filter_list[f])]
+            magnitudes['%s_%s_%s'%(test_string,int(iden[c]),macs1423_filter_list[f])] = hst_phot(photflam['%s'%(macs1423_filter_list[f])], photplam['%s'%(macs1423_filter_list[f])],ap_sum['%s_%s_%s'%(test_string,int(iden[c]),macs1423_filter_list[f])])
+            merino_err['%s_%s_%s'%(test_string,int(iden[c]),macs1423_filter_list[f])] = 0.01*magnitudes['%s_%s_%s'%(test_string,int(iden[c]),macs1423_filter_list[f])]
+            print()
+            print(cluster[c],'',macs1423_filter_list[f])
+            print()
+        '''merino['%s_%s_%s'%(test_string,int(iden[c]),macs1423_filter_list[f])]=[magnitudes['a209_774_f225w'],magnitudes['a209_774_f275w'],magnitudes['a209_774_f336w'],magnitudes['a209_774_f390w'],\
+                                         magnitudes['a209_774_f435w'],magnitudes['a209_774_f475w'],magnitudes['a209_774_f606w'],\
+                                         magnitudes['a209_774_f775w'],magnitudes['a209_774_f814w'],magnitudes['a209_774_f850lp'],magnitudes['a209_774_f105w'],\
+                                         magnitudes['a209_774_f110w'],magnitudes['a209_774_f125w'],magnitudes['a209_774_f140w'],magnitudes['a209_774_f160w']]'''
+        merino['%s_%s_%s'%(test_string,int(iden[c]),macs1423_filter_list[f])]=[magnitudes['%s_%s_%s'%(test_string,int(iden[c]),macs1423_filter_list[0])],magnitudes['%s_%s_%s'%(test_string,int(iden[c]),macs1423_filter_list[1])],\
+               magnitudes['%s_%s_%s'%(test_string,int(iden[c]),macs1423_filter_list[2])],magnitudes['%s_%s_%s'%(test_string,int(iden[c]),macs1423_filter_list[3])],\
+               magnitudes['%s_%s_%s'%(test_string,int(iden[c]),macs1423_filter_list[4])],magnitudes['%s_%s_%s'%(test_string,int(iden[c]),macs1423_filter_list[5])],\
+               magnitudes['%s_%s_%s'%(test_string,int(iden[c]),macs1423_filter_list[6])],magnitudes['%s_%s_%s'%(test_string,int(iden[c]),macs1423_filter_list[7])],\
+               magnitudes['%s_%s_%s'%(test_string,int(iden[c]),macs1423_filter_list[8])],magnitudes['%s_%s_%s'%(test_string,int(iden[c]),macs1423_filter_list[9])],\
+               magnitudes['%s_%s_%s'%(test_string,int(iden[c]),macs1423_filter_list[10])],magnitudes['%s_%s_%s'%(test_string,int(iden[c]),macs1423_filter_list[11])],\
+               magnitudes['%s_%s_%s'%(test_string,int(iden[c]),macs1423_filter_list[12])],magnitudes['%s_%s_%s'%(test_string,int(iden[c]),macs1423_filter_list[13])]]
+    
+        wavelength['%s_%s_%s'%(test_string,int(iden[c]),macs1423_filter_list[f])]=[photplam['f225w'],photplam['f275w'],photplam['f336w'],photplam['f390w'],\
+                                         photplam['f435w'],photplam['f475w'],photplam['f606w'],photplam['f775w'],\
+                                         photplam['f850lp'],photplam['f105w'],photplam['f110w'],\
+                                         photplam['f125w'],photplam['f140w'],photplam['f160w']]
+        
+        filt = []
+        for m in range(0,len(macs1423_filter_list)):
+            filt.append(abs(clash_mag['clash_mag_{0}_{1}'.format(test_string,int(iden[c]))][m]) < 99)
+        D = np.compress(filt,clash_mag['clash_mag_{0}_{1}'.format(test_string,int(iden[c]))],0)
+        y_0 = np.min(D)
+        y_1 = np.max(D)
+        
+        plt.errorbar(wavelength['%s_%s_%s'%(test_string,int(iden[c]),macs1423_filter_list[f])], clash_mag['clash_mag_{0}_{1}'.format(test_string,int(iden[c]))], yerr=clash_magerr['clash_magerr_{0}_{1}'.format(test_string,int(iden[c]))], linestyle='',marker='o',label='Clash')
+        plt.errorbar(wavelength['%s_%s_%s'%(test_string,int(iden[c]),macs1423_filter_list[f])], merino['%s_%s_%s'%(test_string,int(iden[c]),macs1423_filter_list[f])], yerr=merino_err['%s_%s_%s'%(test_string,int(iden[c]),macs1423_filter_list[f])], linestyle='',marker='o',label='Merino')
+        plt.legend()
+        plt.ylim(y_0-1,y_1+1)
+        plt.gca().invert_yaxis()
+        plt.xlabel('Wavelengths in Angstroms')
+        plt.ylabel('Magnitude')
+        plt.title('Clash id: ' + str({0}).format(iden_int[c]))
+        plt.savefig('/Volumes/Home_Drive/Research/Plots/%s_%s'%(test_string,int(iden[c])))
+        plt.show()
+        
+    else:
+        clash_mag['clash_mag_{0}_{1}'.format(test_string,int(iden[c]))]=[f225_mag[c],f275_mag[c],f336_mag[c],f390_mag[c],\
+                                     f435_mag[c],f475_mag[c],f606_mag[c],f625_mag[c],\
+                                     f775_mag[c],f814_mag[c],f850_mag[c],f105_mag[c],\
+                                     f110_mag[c],f125_mag[c],f140_mag[c],f160_mag[c]]
+        clash_magerr['clash_magerr_{0}_{1}'.format(test_string,int(iden[c]))]=[f225_magerr[c],f275_magerr[c],f336_magerr[c],f390_magerr[c],\
+                                         f435_magerr[c],f475_magerr[c],f606_magerr[c],f625_magerr[c],\
+                                         f775_magerr[c],f814_magerr[c],f850_magerr[c],f105_magerr[c],\
+                                         f110_magerr[c],f125_magerr[c],f140_magerr[c],f160_magerr[c]]
+        for f in range(0,len(filter_list)):
+            images['%s_%s'%(test_string,filter_list[f])] = str(path)+str(test_string)+'_%s.fits'%(filter_list[f])
+            pf = fits.open(images['%s_%s'%(test_string,filter_list[f])])
+            hdr['%s_%s_hdr'%(test_string,filter_list[f])] = pf[0].header
+            wcs['%s_%s_wcs'%(test_string,filter_list[f])] = WCS(hdr['%s_%s_hdr'%(test_string,filter_list[f])])
+            data = pf[0].data
+            phot['%s_%s_%s'%(test_string,int(iden[c]),filter_list[f])] = aperture_photometry(pf,sky_apers[c],wcs=wcs['%s_%s_wcs'%(test_string,filter_list[f])])
+            ap_sum['%s_%s_%s'%(test_string,int(iden[c]),filter_list[f])] = phot['%s_%s_%s'%(test_string,int(iden[c]),filter_list[f])]['aperture_sum'][0]
+            photflam['%s'%(filter_list[f])] = pf[0].header['photflam']
+            photplam['%s'%(filter_list[f])] = pf[0].header['photplam']
+            photbw['%s'%(filter_list[f])] = pf[0].header['photbw']
+            pivot['%s_%s_%s'%(test_string,int(iden[c]),filter_list[f])] = photplam['%s'%(filter_list[f])]
+            magnitudes['%s_%s_%s'%(test_string,int(iden[c]),filter_list[f])] = hst_phot(photflam['%s'%(filter_list[f])], photplam['%s'%(filter_list[f])],ap_sum['%s_%s_%s'%(test_string,int(iden[c]),filter_list[f])])
+            merino_err['%s_%s_%s'%(test_string,int(iden[c]),filter_list[f])] = 0.01*magnitudes['%s_%s_%s'%(test_string,int(iden[c]),filter_list[f])]
+            print()
+            print(cluster[c],'',filter_list[f])
+            print()
+        '''merino['%s_%s_%s'%(test_string,int(iden[c]),filter_list[f])]=[magnitudes['a209_774_f225w'],magnitudes['a209_774_f275w'],magnitudes['a209_774_f336w'],magnitudes['a209_774_f390w'],\
+                                         magnitudes['a209_774_f435w'],magnitudes['a209_774_f475w'],magnitudes['a209_774_f606w'],magnitudes['a209_774_f625w'],\
+                                         magnitudes['a209_774_f775w'],magnitudes['a209_774_f814w'],magnitudes['a209_774_f850lp'],magnitudes['a209_774_f105w'],\
+                                         magnitudes['a209_774_f110w'],magnitudes['a209_774_f125w'],magnitudes['a209_774_f140w'],magnitudes['a209_774_f160w']]'''
+        merino['%s_%s_%s'%(test_string,int(iden[c]),filter_list[f])]=[magnitudes['%s_%s_%s'%(test_string,int(iden[c]),filter_list[0])],magnitudes['%s_%s_%s'%(test_string,int(iden[c]),filter_list[1])],\
+               magnitudes['%s_%s_%s'%(test_string,int(iden[c]),filter_list[2])],magnitudes['%s_%s_%s'%(test_string,int(iden[c]),filter_list[3])],\
+               magnitudes['%s_%s_%s'%(test_string,int(iden[c]),filter_list[4])],magnitudes['%s_%s_%s'%(test_string,int(iden[c]),filter_list[5])],\
+               magnitudes['%s_%s_%s'%(test_string,int(iden[c]),filter_list[6])],magnitudes['%s_%s_%s'%(test_string,int(iden[c]),filter_list[7])],\
+               magnitudes['%s_%s_%s'%(test_string,int(iden[c]),filter_list[8])],magnitudes['%s_%s_%s'%(test_string,int(iden[c]),filter_list[9])],\
+               magnitudes['%s_%s_%s'%(test_string,int(iden[c]),filter_list[10])],magnitudes['%s_%s_%s'%(test_string,int(iden[c]),filter_list[11])],\
+               magnitudes['%s_%s_%s'%(test_string,int(iden[c]),filter_list[12])],magnitudes['%s_%s_%s'%(test_string,int(iden[c]),filter_list[13])],\
+               magnitudes['%s_%s_%s'%(test_string,int(iden[c]),filter_list[14])],magnitudes['%s_%s_%s'%(test_string,int(iden[c]),filter_list[15])]]
+    
+        wavelength['%s_%s_%s'%(test_string,int(iden[c]),filter_list[f])]=[photplam['f225w'],photplam['f275w'],photplam['f336w'],photplam['f390w'],\
+                                         photplam['f435w'],photplam['f475w'],photplam['f606w'],photplam['f625w'],\
+                                         photplam['f775w'],photplam['f814w'],photplam['f850lp'],photplam['f105w'],\
+                                         photplam['f110w'],photplam['f125w'],photplam['f140w'],photplam['f160w']]
+        filt = []
+        for m in range(0,len(filter_list)):
+            filt.append(abs(clash_mag['clash_mag_{0}_{1}'.format(test_string,int(iden[c]))][m]) < 99)
+        D = np.compress(filt,clash_mag['clash_mag_{0}_{1}'.format(test_string,int(iden[c]))],0)
+        y_0 = np.min(D)
+        y_1 = np.max(D)
+        
+        plt.errorbar(wavelength['%s_%s_%s'%(test_string,int(iden[c]),filter_list[f])], clash_mag['clash_mag_{0}_{1}'.format(test_string,int(iden[c]))], yerr=clash_magerr['clash_magerr_{0}_{1}'.format(test_string,int(iden[c]))], linestyle='',marker='o',label='Clash')
+        plt.errorbar(wavelength['%s_%s_%s'%(test_string,int(iden[c]),filter_list[f])], merino['%s_%s_%s'%(test_string,int(iden[c]),filter_list[f])], yerr=merino_err['%s_%s_%s'%(test_string,int(iden[c]),filter_list[f])], linestyle='',marker='o',label='Merino')
+        plt.legend()
+        plt.ylim(y_0-1,y_1+1)
+        plt.gca().invert_yaxis()
+        plt.xlabel('Wavelengths in Angstroms')
+        plt.ylabel('Magnitude')
+        plt.title('Clash id: ' + str({0}).format(iden_int[c]))
+        plt.savefig('/Volumes/Home_Drive/Research/Plots/%s_%s'%(test_string,int(iden[c])))
+        plt.show()
+        
+t1 = time.time()
+total = t1-t0
+total_min = total/60
+print()
+print(total, 'seconds')
+print(total_min, 'minutes')
