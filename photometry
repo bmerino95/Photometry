@@ -24,6 +24,8 @@ macs0744 does not have f625w and has 775w with ACS and wfc3uvis
 macs1423 does not have f625w
 """
 
+import os
+import ConfigParser   # Python 2.7?
 import numpy as np
 import matplotlib.pyplot as plt
 import sys
@@ -54,6 +56,16 @@ Mpc = 3.086e24      # cm
 ## PHOTPLAM: Pivot wavelength
 
 
+f = "photometry.cfg.glw"
+
+config = ConfigParser.ConfigParser()
+config.read(f)
+#path to background subtracted iamges
+sub_img_dir = config.get('CONFIG','sub_img_dir')
+catalog_file = config.get('CONFIG','catalog_file')
+
+
+
 def hst_phot(photflam,photplam,dn,dn_err=None,unit="Jy"):
 
     ## http://www.stsci.edu/hst/acs/analysis/zeropoints
@@ -68,28 +80,33 @@ def hst_phot(photflam,photplam,dn,dn_err=None,unit="Jy"):
 
 
 #Read in CLASH photometry for clumpy galaxies
-iden,ra,dec,area = np.loadtxt('/Users/brianmerino/Desktop/CLUSTERS/master_catalog.txt',delimiter='\t',usecols=[3,0,1,4],skiprows=1,unpack=True)
-cluster = np.loadtxt('/Users/brianmerino/Desktop/CLUSTERS/master_catalog.txt',dtype='str',delimiter='\t',usecols=[2],skiprows=1)
+#iden,ra,dec,area = np.loadtxt(catalog_file,delimiter='\t',usecols=[3,0,1,4],skiprows=1,unpack=True)
+#cluster = np.loadtxt(catalog_file,dtype='str',delimiter='\t',usecols=[2],skiprows=1)
+#print cluster
 
 #Use circular area to calulcate radius
-rad = []
-for l in range(0,len(area)):
-    rad.append(round(np.sqrt(area[l]/np.pi),4))
+#rad = []
+#for l in range(0,len(area)):
+#    rad.append(round(np.sqrt(area[l]/np.pi),4))
+#
+#coords,radius,sky_apers = [],[],[]
+#iden_int = []
+#
+#for i in range(0,len(iden)):
+#    iden_int.append(int(iden[i]))
+#
+##Create circular aperatures in skycoordinates
+#for i in range (0,len(ra)):
+#    coords.append(SkyCoord(ra[i], dec[i], unit="deg"))
+#    radius.append(rad[i] *u.pix)        # pixels
+#    sky_apers.append(SkyCircularAperture(coords[i], r=radius[i]))
+#
+##Makes sure that the correct number of apertures were created
+#print (len(sky_apers))
+#
 
-coords,radius,sky_apers = [],[],[]
-iden_int = []
 
-for i in range(0,len(iden)):
-    iden_int.append(int(iden[i]))
 
-#Create circular aperatures in skycoordinates
-for i in range (0,len(ra)):
-    coords.append(SkyCoord(ra[i], dec[i], unit="deg"))
-    radius.append(rad[i] *u.pix)        # pixels
-    sky_apers.append(SkyCircularAperture(coords[i], r=radius[i]))
-
-#Makes sure that the correct number of apertures were created
-print (len(sky_apers))
 
 
 filter_list = ['f225w','f275w','f336w','f390w','f435w','f475w','f606w','f625w','f775w','f814w','f850lp','f105w','f110w','f125w','f140w','f160w']
@@ -98,7 +115,17 @@ macs1423_filter_list = ['f225w','f275w','f336w','f390w','f435w','f475w','f606w',
 Clusters = ['a209','a383','a611','macs0329','macs0416','macs0429','macs0717','macs0744','macs1115','macs1149','macs1206','macs1311','macs1423','macs1720','macs1931','macs2129','ms2137','rxj1347','rxj1532','rxj2129']
 
 #Read in CLASH data so that I can compare it against mine
-Master_catalog = Table.read('/Users/brianmerino/Desktop/CLUSTERS/master_catalog.txt',format = 'ascii')
+mcatalog = Table.read(catalog_file,format = 'ascii.sextractor')
+cluster = mcatalog['Cluster']
+print cluster
+print mcatalog
+print mcatalog['RA']
+print mcatalog['area']
+
+
+print mcatalog['f606w_mag']
+
+sys.exit()
 
 f225_mag, f225_magerr= Master_catalog['col7'],Master_catalog['col8']
 f275_mag, f275_magerr= Master_catalog['col9'],Master_catalog['col10']
@@ -117,8 +144,7 @@ f125_mag, f125_magerr= Master_catalog['col33'],Master_catalog['col34']
 f140_mag, f140_magerr= Master_catalog['col35'],Master_catalog['col36']
 f160_mag, f160_magerr= Master_catalog['col37'],Master_catalog['col38']
 
-#path to background subtracted iamges
-path = '/Volumes/Home_Drive/Research/Subtracted_Backgrounds/'
+
 
 #Create dictionaries
 mag          = []
@@ -157,7 +183,7 @@ for c in range(0,len(cluster)):
                                      f435_magerr[c],f475_magerr[c],f606_magerr[c],f775_magerr[c],f814_magerr[c],f850_magerr[c],f105_magerr[c],\
                                      f110_magerr[c],f125_magerr[c],f140_magerr[c],f160_magerr[c]]
         for f in range(0,len(alternate_filter_list)):
-            images['%s_%s'%(test_string,alternate_filter_list[f])] = str(path)+str(test_string)+'_%s.fits'%(alternate_filter_list[f])
+            images['%s_%s'%(test_string,alternate_filter_list[f])] = str(sub_img_dir)+str(test_string)+'_%s.fits'%(alternate_filter_list[f])
             pf = fits.open(images['%s_%s'%(test_string,alternate_filter_list[f])])
             hdr['%s_%s_hdr'%(test_string,alternate_filter_list[f])] = pf[0].header
             wcs['%s_%s_wcs'%(test_string,alternate_filter_list[f])] = WCS(hdr['%s_%s_hdr'%(test_string,alternate_filter_list[f])])
@@ -218,7 +244,7 @@ for c in range(0,len(cluster)):
                                          f775_magerr[c],f850_magerr[c],f105_magerr[c],\
                                          f110_magerr[c],f125_magerr[c],f140_magerr[c],f160_magerr[c]]
         for f in range(0,len(macs1423_filter_list)):
-            images['%s_%s'%(test_string,macs1423_filter_list[f])] = str(path)+str(test_string)+'_%s.fits'%(macs1423_filter_list[f])
+            images['%s_%s'%(test_string,macs1423_filter_list[f])] = str(sub_img_dir)+str(test_string)+'_%s.fits'%(macs1423_filter_list[f])
             pf = fits.open(images['%s_%s'%(test_string,macs1423_filter_list[f])])
             hdr['%s_%s_hdr'%(test_string,macs1423_filter_list[f])] = pf[0].header
             wcs['%s_%s_wcs'%(test_string,macs1423_filter_list[f])] = WCS(hdr['%s_%s_hdr'%(test_string,macs1423_filter_list[f])])
@@ -279,7 +305,7 @@ for c in range(0,len(cluster)):
                                          f775_magerr[c],f814_magerr[c],f850_magerr[c],f105_magerr[c],\
                                          f110_magerr[c],f125_magerr[c],f140_magerr[c],f160_magerr[c]]
         for f in range(0,len(filter_list)):
-            images['%s_%s'%(test_string,filter_list[f])] = str(path)+str(test_string)+'_%s.fits'%(filter_list[f])
+            images['%s_%s'%(test_string,filter_list[f])] = str(sub_img_dir)+str(test_string)+'_%s.fits'%(filter_list[f])
             pf = fits.open(images['%s_%s'%(test_string,filter_list[f])])
             hdr['%s_%s_hdr'%(test_string,filter_list[f])] = pf[0].header
             wcs['%s_%s_wcs'%(test_string,filter_list[f])] = WCS(hdr['%s_%s_hdr'%(test_string,filter_list[f])])
