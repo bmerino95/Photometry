@@ -56,7 +56,7 @@ Mpc = 3.086e24      # cm
 ## PHOTPLAM: Pivot wavelength
 
 
-f = "photometry.cfg.glw"
+f = "photometry.cfg"
 
 config = ConfigParser.ConfigParser()
 config.read(f)
