@@ -1,0 +1,93 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Created on Mon Jun  8 13:18:03 2020
+
+@author: brianmerino
+
+
+This code will create thumbnails of my target sources to test if the background 
+subtractor works better with these images as opposed to subtracting the 
+background of the entire cluster at once.
+
+"""
+import numpy as np
+from math import ceil
+import sys
+import astropy
+from astropy.coordinates import SkyCoord  # High-level coordinates
+import astropy.units as u
+from photutils import SkyCircularAperture
+import time
+
+t0 = time.time()
+
+#Read in CLASH photometry for clumpy galaxies
+cluster,iden,ra,dec,area = np.loadtxt('/Users/brianmerino/Desktop/CLUSTERS/master_catalog.txt',delimiter='\t',usecols=[2,3,0,1,4],skiprows=1,unpack=True)
+
+#Use circular area to calulcate radius
+rad = []
+for l in range(0,len(area)):
+    rad.append(round(np.sqrt(area[l]/np.pi),4))
+
+coords,radius,sky_apers = [],[],[]
+iden_int = []
+
+for i in range(0,len(iden)):
+    iden_int.append(int(iden[i]))
+
+#Create circular aperatures in skycoordinates
+for i in range (0,len(ra)):
+    coords.append(SkyCoord(ra[i], dec[i], unit="deg"))
+    radius.append(rad[i] *u.pix)        # pixels
+    sky_apers.append(SkyCircularAperture(coords[i], r=radius[i]))
+
+
+#Filters and Cluster that are being used
+filter_list = ['f225w','f275w','f336w','f390w','f435w','f475w','f606w','f625w','f775w','f814w','f850lp','f105w','f110w','f125w','f140w','f160w']
+Clusters = ['a209','a383','a611','macs0329','macs0416','macs0429','macs0717','macs0744','macs1115','macs1149','macs1206','macs1311','macs1423','macs1720','macs1931','macs2129','ms2137','rxj1347','rxj1532','rxj2129']
+
+path = "/Users/brianmerino/Desktop/CLUSTERS/"+str(Clusters[0])+"/data/hst/scale_65mas/"
+filter_path = str(path)+"hlsp_clash_hst_"
+
+#Create dictionaries
+filters = {}
+hdulist = {}
+hdr     = {}
+wcs     = {}
+norm    = {}
+bkg     = {}
+bs      = {}
+
+
+#for i in range(0,len(filter_list)):
+for i in range(0,1):
+    x1 = ceil((ra[i]*u.pix-rad[i]*u.pix)/u.pix)
+    x2 = ceil((ra[i]*u.pix+rad[i]*u.pix)/u.pix)
+    y1 = ceil((dec[i]*u.pix-rad[i]*u.pix)/u.pix)
+    y2 = ceil((dec[i]*u.pix+rad[i]*u.pix)/u.pix)
+    
+    if filter_list[i] == 'f435w' or filter_list[i] == 'f475w' or filter_list[i] == 'f606w' or filter_list[i] == 'f625w'\
+    or filter_list[i] == 'f775w' or filter_list[i] == 'f814w' or filter_list[i] == 'f850lp':
+        filters['%s'%(filter_list[i])] = str(filter_path)+'acs_'+str(Clusters[i])+'_%s_v1_drz.fits'%(filter_list[i])
+        #print('yes '+filter_list[i])
+        
+    elif filter_list[i] == 'f105w' or filter_list[i] == 'f110w' or filter_list[i] == 'f125w' or filter_list[i] == 'f140w'\
+    or filter_list[i] == 'f160w':
+        filters['%s'%(filter_list[i])] = str(filter_path)+'wfc3ir_'+str(Clusters[i])+'_%s_v1_drz.fits'%(filter_list[i])
+        
+    elif filter_list[i] == 'f225w' or filter_list[i] == 'f275w' or filter_list[i] == 'f336w' or filter_list[i] == 'f390w':
+        filters['%s'%(filter_list[i])] = str(filter_path)+'wfc3uvis_'+str(Clusters[i])+'_%s_v1_drz.fits'%(filter_list[i])
+
+
+    pf = astropy.io.fits.open(filters['%s'%(str(filter_list[i]))])
+    head = pf[0].header
+    data = pf[0].data
+    subdata = data[x1:x2,y1:y2]
+    hdu = astropy.io.fits.PrimaryHDU(subdata,header=head)
+    hdu.writeto('/Users/brianmerino/Desktop/test_image_%d.fits'%(i+1),clobber=True)
+
+t1 = time.time()
+total = t1-t0
+print()
+print(total, 'seconds')
