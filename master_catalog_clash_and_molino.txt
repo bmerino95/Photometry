@@ -33,7 +33,7 @@
 #33 	 f125w_mag 
 #34 	 f125w_magerr 
 #35 	 f140w_mag 
-#36 	 f140w_mag 
+#36 	 f140w_magerr 
 #37 	 f160w_mag 
 #38 	 f160w_magerr 
 #39 	 CLASH&Molino 
