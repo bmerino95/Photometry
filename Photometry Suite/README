@@ -1,0 +1,11 @@
+This directory contains a cfg file that each code uses. This file needs to be updated for each source. HST_filters.py needs to be in the same directoy as phot_plotter.py.
+
+The order that the code should be used in is depicted below:
+* Quick_Thumbnail.py
+* Quick_Background_w_Mask.py
+* watershed8.py
+* single_clump_phot.py
+* segmentation.py
+* galaxy_phot.py
+* phot_plotter
+
