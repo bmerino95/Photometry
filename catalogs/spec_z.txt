@@ -1,0 +1,5 @@
+#This text file contains the information of galaxies whose redshifts were found from MUSE data or Magellan observations.
+cluster id spec_z observation
+a209 1312 0.579 MUSE
+macs2129 1077 0.872 MUSE
+rxj2129 274 0.679 MUSE
