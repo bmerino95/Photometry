@@ -1,5 +1,57 @@
 #This text file contains the information of galaxies whose redshifts were found from MUSE data or Magellan observations.
-#cluster id spec_z observation
-a209 1312 0.579 MUSE
-macs2129 1077 0.872 MUSE
-rxj2129 274 0.679 MUSE
+#cluster id spec_z observation line_notes
+    a209      1312   0.579    MUSE   O2,O3,Hb
+    a383      193   0.3219  CONNOR
+    a383      799    0.656    MUSE   O2,O3,Hb
+    a383      1366   0.928    MUSE   O2
+    a383      1459   0.412    MUSE   O2,O3,Ha,Hb
+    a383      2280  1.1984  CONNOR
+    a383      2443  0.2113  CONNOR
+macs0329        75  0.7773  CONNOR
+macs0416       310  0.6115  CONNOR
+macs0416       439   0.528    MUSE   O2,O3,Hb
+macs0416       502  2.0854  CONNOR
+macs0416       902  0.7358  CONNOR
+macs0416       987   0.673    MUSE   O2,O3,Hb
+macs0416      1457   0.737    MUSE   O2,O3,Hb
+macs0416      1061   0.847    MUSE   O2,O3,Hb
+macs0429       432   0.772    MUSE   O2,O3,Hb
+macs0429       785   0.568    MUSE   O2,O3,Hb
+macs1115        26  0.6302  CONNOR
+macs1115       693   0.946    MUSE   O2
+macs1115      1267  0.5902  CONNOR
+macs1149       825  0.7610  CONNOR
+macs1149      1005   0.702    MUSE   O2,O3,Hb
+macs1149      1437   0.533    MUSE   CaII-K,CaII-H
+macs1206       253  0.3236  CONNOR
+macs1206       727   0.527    MUSE   O2,O3,Hb,Hg,Hd
+macs1206       449   0.734    MUSE   O2,O3,Hb; is this an image of 662? morphology looks similar!
+macs1206       662   0.735    MUSE   O2,O3,Hb        
+macs1206      1452   1.039    MUSE   O2,O3
+macs1206      1461   0.476    MUSE   O2,O3,Hb
+macs1206      1703   0.858    MUSE   CaII-K, CaII-H; source nearby, "clump" at z=1.12
+macs1206      1873  0.6728  CONNOR
+macs1311       404  0.7294  CONNOR
+macs1311       595   0.875    MUSE   O2; image of 698? similar mophology!
+macs1311       642   0.956    MUSE   CaII-K, CaII-H
+macs1311       698   0.876    MUSE   O2,O3
+macs1423       663   0.675    MUSE   O2?
+macs1423      1138   0.762    MUSE   O2,O3,Hb
+macs1931       913   0.804    MUSE   O2,O3,Hb
+macs2129      1077   0.872    MUSE   O2,Hb
+macs2129      1871  1.0511  CONNOR 
+  ms2137       594  0.7322  CONNOR
+  ms2137       870   0.540    MUSE   O2,O3,Hb
+  ms2137      1325  0.6177  CONNOR
+  ms2137      1495  0.7882  CONNOR
+ rxj1347       240   0.850    MUSE   CaII-K,CaII-H
+ rxj1347       402   0.848    MUSE   CaII-K,CaII-H,O2?
+ rxj1347       452   0.806    MUSE   O2,O3,Hb
+ rxj1347      1507   0.608    MUSE   CaII-K,CaII-H,O2,Hb?
+ rxj1347      1874   0.905    MUSE   O2,Hb
+ rxj1532       647   0.871    MUSE   O2,Hb
+ rxj1532       940   0.934    MUSE   O2
+ rxj2129       274   0.680    MUSE   O2,O3,Hb
+ rxj2129       528   0.589    MUSE   O2,O3,Hb,Hg,Hd
+ rxj2129       895   0.423    MUSE   O2,O3,Hb
+ rxj2129      1031   0.435    MUSE   O2,O3,Hb,Hg,Hd
