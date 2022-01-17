@@ -29,7 +29,7 @@ macs1206       662   0.735    MUSE   O2,O3,Hb
 macs1206      1452   1.039    MUSE   O2,O3
 macs1206      1461   0.476    MUSE   O2,O3,Hb
 macs1206      1703   0.858    MUSE   CaII-K, CaII-H; source nearby, "clump" at z=1.12
-macs1206      1873  0.6728  CONNOR
+macs1206      1837  0.6728  CONNOR
 macs1311       404  0.7294  CONNOR
 macs1311       595   0.875    MUSE   O2; image of 698? similar mophology!
 macs1311       642   0.956    MUSE   CaII-K, CaII-H
