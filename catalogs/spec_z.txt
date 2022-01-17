@@ -10,7 +10,6 @@
 macs0329        75  0.7773  CONNOR
 macs0416       310  0.6115  CONNOR
 macs0416       439   0.528    MUSE   O2,O3,Hb
-macs0416       502  2.0854  CONNOR
 macs0416       902  0.7358  CONNOR
 macs0416       987   0.673    MUSE   O2,O3,Hb
 macs0416      1457   0.737    MUSE   O2,O3,Hb
@@ -48,7 +47,6 @@ macs2129      1871  1.0511  CONNOR
  rxj1347       402   0.848    MUSE   CaII-K,CaII-H,O2?
  rxj1347       452   0.806    MUSE   O2,O3,Hb
  rxj1347      1507   0.608    MUSE   CaII-K,CaII-H,O2,Hb?
- rxj1347      1874   0.905    MUSE   O2,Hb
  rxj1532       647   0.871    MUSE   O2,Hb
  rxj1532       940   0.934    MUSE   O2
  rxj2129       274   0.680    MUSE   O2,O3,Hb
