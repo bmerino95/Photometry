@@ -1,8 +1,8 @@
 This directory contains all of the files needed to run our modified version of the EAZY SED code. There are three similar but different versions of this code. 
 
 1. merino_galaxy_z_phot.ipynb
-2. 
-3. 
+2. merino_galaxy_amp_phot.ipynb  (NOT YET POSTED)
+3. merino_clump_phot.ipynb       (NOT YET POSTED)
 
 The merino_galaxy_z_phot.ipynb code should be ran after obtaining photometry (using the photometry suite). The code estimates the photometric redshifts (z_phot, z_16, z_50, and z_84).
 
