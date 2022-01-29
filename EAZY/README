@@ -1,0 +1,11 @@
+This directory contains all of the files needed to run our modified version of the EAZY SED code. There are three similar but different versions of this code. 
+
+1. merino_galaxy_z_phot.ipynb
+2. 
+3. 
+
+The merino_galaxy_z_phot.ipynb code should be ran after obtaining photometry (using the photometry suite). The code estimates the photometric redshifts (z_phot, z_16, z_50, and z_84).
+
+The merino_galaxy_amp_phot.ipynb code should be ran after calculating the mean Flux Amplification for all of the sources. This code is similar to (1) with the major difference being that this code estiamtes the intrinsic properties of our sources. 
+
+The merino_clump_phot.ipynb code should be ran last. The photometric redshifts estimated in (2) for the host galaxy are fixed for the clumps. This code measures the intrinsic properties of the individual clumps.
