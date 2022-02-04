@@ -9,3 +9,6 @@ The merino_galaxy_z_phot.ipynb code should be ran after obtaining photometry (us
 The merino_galaxy_amp_phot.ipynb code should be ran after calculating the mean Flux Amplification for all of the sources. This code is similar to (1) with the major difference being that this code estiamtes the intrinsic properties of our sources. 
 
 The merino_clump_phot.ipynb code should be ran last. The photometric redshifts estimated in (2) for the host galaxy are fixed for the clumps. This code measures the intrinsic properties of the individual clumps.
+
+NOTE:
+z_phot is the best fitting redshift.
