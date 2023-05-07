@@ -201,7 +201,7 @@ if cluster == 'a611' or cluster =='macs0717' or cluster =='macs0744':
 
 elif cluster == 'macs1423':
     filter_list = ['f105w', 'f110w', 'f125w', 'f140w', 'f160w', 'f225w', 'f275w', 'f336w',\
-                   'f390w', 'f435w', 'f475w', 'f606w', 'f775w', 'f850lp']
+                   'f390w', 'f435w', 'f475w', 'f606w', 'f775w', 'f814w', 'f850lp']
 
 else:
     filter_list = ['f105w', 'f110w', 'f125w', 'f140w', 'f160w',\

@@ -12,8 +12,11 @@ can call on this code and overplot the data over my photometry.
 import matplotlib.pyplot as plt
 import numpy as np
 
-path_wfc3 = '/Users/brianmerino/Desktop/Apperture_Test/HST_filt/UVIS/'
-path_acs = '/Users/brianmerino/Desktop/Apperture_Test/HST_filt/ACS/'
+path_wfc3 = '/Users/brian.merino/Google Drive/My Drive/Clumpy_Research/Apperture_Test/HST_filt/UVIS/'
+path_acs  = '/Users/brian.merino/Google Drive/My Drive/Clumpy_Research/Apperture_Test/HST_filt/ACS/'
+
+#path_wfc3 = '/Users/brianmerino/Desktop/Apperture_Test/HST_filt/UVIS/'
+#path_acs = '/Users/brianmerino/Desktop/Apperture_Test/HST_filt/ACS/'
 
 # WFC3 filters
 f105w   = 'F105W_IR_throughput.csv'
@@ -97,7 +100,7 @@ def HST_filt():
 # To make sure that my code is working, I can uncomment this section to verify that the code is plotting correctly.
 # Make sure to comment everything below this line when done checking code.
 ###################################################################################################
-
+'''
 x_f105w, y_f105w, x_f110w, y_f110w, x_f125w, y_f125w, x_f140w, y_f140w,\
 x_f160w, y_f160w, x_f225w, y_f225w, x_f275w, y_f275w, x_f336w, y_f336w,\
 x_f390w, y_f390w, x_f435w, y_f435w, x_f475w, y_f475w, x_f606w, y_f606w,\
@@ -154,3 +157,4 @@ p1.set_xlabel('Wavelength [Angstrom]')
 p1.set_ylabel('Throughput')
 
 plt.show()
+'''

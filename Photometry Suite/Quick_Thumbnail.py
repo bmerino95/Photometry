@@ -23,7 +23,8 @@ import time
 t0 = time.time()
 
 def Quick(cluster,Filter,ra,dec,rad):
-    path = '/Users/brianmerino/Desktop/CLUSTERS/%s/data/hst/scale_65mas/'%(cluster)
+    #path = '/Users/brianmerino/Desktop/CLUSTERS/%s/data/hst/scale_65mas/'%(cluster)
+    path = '/Users/brian.merino/Google Drive/My Drive/Clumpy_Research/CLUSTERS/%s/data/hst/scale_65mas/'%(cluster)
     
     if Filter == 'f105w' or Filter == 'f110w' or Filter == 'f125w' or Filter =='f140w' or Filter =='f160w':
         file = 'hlsp_clash_hst_wfc3ir_%s_%s_v1_drz.fits'%(cluster,Filter)
@@ -113,12 +114,14 @@ def Quick(cluster,Filter,ra,dec,rad):
     p1.add_artist(circle)
     
     #save_to2 = save_to[:-4]+'png'
-    save_to2 = '/Users/brianmerino/Desktop/Apperture_Test/%s-%s/%s.png'%(cluster,Id,item)
+    #save_to2 = '/Users/brianmerino/Desktop/Apperture_Test/%s-%s/%s.png'%(cluster,Id,item)
+    save_to2 = '/Users/brian.merino/Google Drive/My Drive/Clumpy_Research/Apperture_Test/%s-%s/%s.png'%(cluster,Id,item)
     plt.savefig(save_to2,overwrite=True)
     plt.show()
     
 # This cfg file will contain the variables that each code needs. 
-cfg = "/Users/brianmerino/Desktop/Apperture_Test/Code/general.cfg"
+#cfg = "/Users/brianmerino/Desktop/Apperture_Test/Code/general.cfg"
+cfg = "/Users/brian.merino/Google Drive/My Drive/Clumpy_Research/Photometry/Photometry Suite/general.cfg"
 
 config = configparser.ConfigParser()
 config.read(cfg)
@@ -143,7 +146,7 @@ if cluster == 'a611' or cluster =='macs0717' or cluster == 'macs0744':
 
 elif cluster == 'macs1423':
     filter_list = ['f105w', 'f110w', 'f125w', 'f140w', 'f160w', 'f225w', 'f275w', 'f336w',\
-                   'f390w', 'f435w', 'f475w', 'f606w', 'f775w', 'f850lp']
+                   'f390w', 'f435w', 'f475w', 'f606w', 'f775w', 'f814w', 'f850lp']
 
 else:
     filter_list = ['f105w', 'f110w', 'f125w', 'f140w', 'f160w',\
@@ -152,8 +155,10 @@ else:
 
 
 for item in filter_list:
-    save_to = '/Users/brianmerino/Desktop/Apperture_Test/%s-%s/Thumbnails/%s.fits'%(cluster,Id,item)
-    save_to_wht = '/Users/brianmerino/Desktop/Apperture_Test/%s-%s/Thumbnails/%s_wht.fits'%(cluster,Id,item)
+    #save_to = '/Users/brianmerino/Desktop/Apperture_Test/%s-%s/Thumbnails/%s.fits'%(cluster,Id,item)
+    #save_to_wht = '/Users/brianmerino/Desktop/Apperture_Test/%s-%s/Thumbnails/%s_wht.fits'%(cluster,Id,item)
+    save_to = '/Users/brian.merino/Google Drive/My Drive/Clumpy_Research/Apperture_Test/%s-%s/Thumbnails/%s.fits'%(cluster,Id,item)
+    save_to_wht = '/Users/brian.merino/Google Drive/My Drive/Clumpy_Research/Apperture_Test/%s-%s/Thumbnails/%s_wht.fits'%(cluster,Id,item)
     Quick(cluster,item,ra,dec,rad)
 
 
